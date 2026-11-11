@@ -19,6 +19,6 @@ jobs:
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
     steps:
       - uses: actions/checkout@v7
-      - uses: databricks/setup-cli@v0.273.0
+      - uses: databricks/setup-cli@v0.273.1
       - run: databricks bundle validate -t dev
       - run: databricks bundle deploy -t dev
