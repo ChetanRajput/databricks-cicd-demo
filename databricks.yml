@@ -1,8 +1,14 @@
+
 bundle:
   name: databricks-cicd-demo
 
 targets:
   dev:
     default: true
+    workspace:
+      root_path: /Workspace/Deployments/dev/${bundle.name}
+
   uat:
     default: false
+    workspace:
+      root_path: /Workspace/Deployments/uat/${bundle.name}
