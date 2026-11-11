@@ -1,0 +1,8 @@
+bundle:
+  name: databricks-cicd-demo
+
+targets:
+  dev:
+    default: true
+  uat:
+    default: false
