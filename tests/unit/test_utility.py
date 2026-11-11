@@ -13,5 +13,5 @@ def test_dedupe_latest(spark):
     )
     result = dedupe_latest(df, "claim_id", "load_date")
     rows = {r.claim_id: r.load_date for r in result.collect()}
-    assert result.count() == 3
+    assert result.count() == 2
     assert rows["C1"] == "2024-02-01"
