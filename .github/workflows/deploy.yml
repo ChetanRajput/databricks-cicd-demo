@@ -47,3 +47,29 @@ jobs:
       - uses: databricks/setup-cli@v0.273.1
       - run: databricks bundle validate -t uat
       - run: databricks bundle deploy -t uat
+
+  deploy-prod:
+    needs: deploy-uat
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: prod
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Guard - only the newest commit on main may go to PROD
+        run: |
+          git fetch --depth=1 origin refs/heads/main
+          latest=$(git rev-parse FETCH_HEAD)
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            this_run=$(git log -1 --format='%h %s' "$GITHUB_SHA")
+            newest=$(git log -1 --format='%h %s' FETCH_HEAD)
+            who=$(git log -1 --format='%an, %cs' FETCH_HEAD)
+            url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$latest"
+            echo "::error title=Stale approval::This run deploys [$this_run]. Newest on main is [$newest] ($who). Approve that run instead: $url"
+            exit 1
+          fi
+      - uses: databricks/setup-cli@v0.273.1
+      - run: databricks bundle validate -t prod
+      - run: databricks bundle deploy -t prod
