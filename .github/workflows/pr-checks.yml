@@ -16,14 +16,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Check notebook headers
+        run: |
+          status=0
+          while IFS= read -r f; do
+            if [ "$(head -n1 "$f")" != '# Databricks notebook source' ]; then
+              echo "::error file=$f::Missing the notebook header line"
+              status=1
+            fi
+          done < <(find notebooks -name '*.py' 2>/dev/null)
+          exit $status
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: '3.11'
           cache: pip
           cache-dependency-path: requirements-dev.txt
 
