@@ -1,0 +1,46 @@
+name: promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Environment to deploy main to'
+        type: choice
+        options:
+          - uat
+          - prod
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: ${{ inputs.target }}
+    concurrency:
+      group: promote-${{ inputs.target }}
+      cancel-in-progress: false
+    env:
+      TARGET: ${{ inputs.target }}
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 10
+
+      - name: Show what is being deployed
+        run: |
+          {
+            echo "### Deploying to $TARGET"
+            echo "Commit: $GITHUB_SHA"
+            echo ""
+            echo "Latest commits on this branch:"
+            git log -10 --format='- %h %s (%an, %cs)'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: databricks/setup-cli@v0.273.1
+      - run: databricks bundle validate -t "$TARGET"
+      - run: databricks bundle deploy -t "$TARGET"
